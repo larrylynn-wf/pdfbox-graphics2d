@@ -29,6 +29,7 @@ public class RenderSVGsTest extends PdfBoxGraphics2DTestBase
     public void testGradientSVG() throws IOException
     {
         renderSVG("long-gradient.svg", 0.55);
+        renderSVG("tall-gradient.svg", 0.33);
     }
 
     private void renderSVG(String name, final double scale) throws IOException

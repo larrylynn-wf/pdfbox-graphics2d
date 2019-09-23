@@ -371,7 +371,7 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
             /*
              * Special handling for Batik
              */
-            if (!isNormalParallel && false)
+            if (!isNormalParallel && true)
             {
                 Rectangle2D originalBounds2D = shapeToDraw.getBounds2D();
                 Area area = new Area(originalBounds2D);
