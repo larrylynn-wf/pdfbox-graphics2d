@@ -401,6 +401,8 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
+        state.contentStream.transform(Matrix.getTranslateInstance( 0.0f, 345.0f + 55.0f));
+        state.contentStream.transform(Matrix.getScaleInstance( 385.0f, -55.0f));
         return shading;
     }
 
