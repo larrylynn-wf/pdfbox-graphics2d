@@ -364,18 +364,27 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         float origY = (float) originalBounds2D.getY();
         float origH = (float) originalBounds2D.getHeight();
         float origW = (float) originalBounds2D.getWidth();
+        Point2D startPointCopy = (Point2D) startPoint.clone();
+        Point2D endPointCopy = (Point2D) endPoint.clone();
+        state.tf.transform(startPointCopy, startPointCopy);
+        state.tf.transform(endPointCopy, endPointCopy);
+        double calculatedH = endPointCopy.getY() - startPointCopy.getY();
+        double calculatedW = endPointCopy.getX() - startPointCopy.getX();
+        double calculatedPdfOriginX = startPointCopy.getX();
+        // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
+        double calculatedPdfOriginY = startPointCopy.getY() + calculatedH;
         COSArray coords = new COSArray();
         if (isBatikGradient && shapeToDraw != null)
         {
             // state.contentStream.transform(new Matrix(state.tf));
 //            contentStream.transform(Matrix.getTranslateInstance(x, y));
 //            contentStream.transform(Matrix.getScaleInstance(w, h));
-            Point2D startPointCopy = (Point2D) startPoint.clone();
-            Point2D endPointCopy = (Point2D) endPoint.clone();
-            state.tf.transform(startPointCopy, startPointCopy);
-            state.tf.transform(endPointCopy, endPointCopy);
-            double calculatedH = endPointCopy.getY() - startPointCopy.getY();
-            double calculatedW = endPointCopy.getX() - startPointCopy.getX();
+//            Point2D startPointCopy = (Point2D) startPoint.clone();
+//            Point2D endPointCopy = (Point2D) endPoint.clone();
+//            state.tf.transform(startPointCopy, startPointCopy);
+//            state.tf.transform(endPointCopy, endPointCopy);
+//            double calculatedH = endPointCopy.getY() - startPointCopy.getY();
+//            double calculatedW = endPointCopy.getX() - startPointCopy.getX();
 
 //            state.contentStream.transform(Matrix.getTranslateInstance( (float) startPointCopy.getX(), (float) startPointCopy.getY()));
 //            state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedH, (float) calculatedW));
@@ -401,6 +410,8 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
+        // the code below does not get the desired result
+        state.contentStream.clip();
         state.contentStream.transform(Matrix.getTranslateInstance( 0.0f, 345.0f + 55.0f));
         state.contentStream.transform(Matrix.getScaleInstance( 385.0f, -55.0f));
         return shading;
