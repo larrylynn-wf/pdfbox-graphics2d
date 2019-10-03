@@ -358,86 +358,44 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         //noinspection unused
         MultipleGradientPaint.ColorSpaceType colorSpaceType = getColorSpaceType(paint);
 
-
         Shape shapeToDraw = state.env.getShapeToDraw();
+        Rectangle2D originalBounds2D = shapeToDraw.getBounds2D();
+        float origX = (float) originalBounds2D.getX();
+        float origY = (float) originalBounds2D.getY();
+        float origH = (float) originalBounds2D.getHeight();
+        float origW = (float) originalBounds2D.getWidth();
+        COSArray coords = new COSArray();
         if (isBatikGradient && shapeToDraw != null)
         {
-            /*
-             *  Is the normal vector of the gradient parallel to x or y?
-             */
-            final boolean isNormalParallel = Math.abs(startPoint.getX() - endPoint.getX()) < EPSILON
-                    || Math.abs(startPoint.getY() - endPoint.getY()) < EPSILON;
+            // state.contentStream.transform(new Matrix(state.tf));
+//            contentStream.transform(Matrix.getTranslateInstance(x, y));
+//            contentStream.transform(Matrix.getScaleInstance(w, h));
+            Point2D startPointCopy = (Point2D) startPoint.clone();
+            Point2D endPointCopy = (Point2D) endPoint.clone();
+            state.tf.transform(startPointCopy, startPointCopy);
+            state.tf.transform(endPointCopy, endPointCopy);
+            double calculatedH = endPointCopy.getY() - startPointCopy.getY();
+            double calculatedW = endPointCopy.getX() - startPointCopy.getX();
 
-            /*
-             * Special handling for Batik
-             */
-            if (!isNormalParallel && false)
-            {
-                Rectangle2D originalBounds2D = shapeToDraw.getBounds2D();
-                Area area = new Area(originalBounds2D);
-                area.transform(state.tf);
-                Rectangle2D bounds2D = area.getBounds2D();
-                final double transformedHeight = bounds2D.getHeight();
-                final double transformedWidth = bounds2D.getWidth();
-                final double originalHeight = originalBounds2D.getHeight();
-                final double originalWidth = originalBounds2D.getWidth();
-                final double min = Math.min(transformedWidth, transformedHeight);
-                final double ratioH = min / transformedHeight;
-                final double ratioW = min / transformedWidth;
-                final double minOriginal = Math.min(originalWidth, originalHeight);
-                final double ratioHOriginal = minOriginal / originalHeight;
-                final double ratioWOriginal = minOriginal / originalWidth;
-
-                /*
-                 * We only need to do something here if the bound rectangle is not square.
-                 */
-                if (Math.abs(ratioH - ratioW) > EPSILON)
-                {
-                    AffineTransform pointTransform = new AffineTransform();
-
-                    Point2D v = new Point2D.Double(startPoint.getX() - endPoint.getX(),
-                            startPoint.getY() - endPoint.getY());
-
-                    pointTransform.scale(ratioW, ratioH);
-                    //pointTransform.scale(ratioWOriginal, ratioHOriginal);
-                    pointTransform.translate(-v.getX() / 2, -v.getY() / 2);
-
-                    if (false)
-                    {
-                        //noinspection UnnecessaryLocalVariable
-                        final double a = originalHeight;
-                        //noinspection UnnecessaryLocalVariable
-                        final double b = originalWidth;
-                        final double c = Math.sqrt(a * a + b * b);
-
-                        double sin90 = 1;
-                        double sinBeta = ((sin90 * a) / c);
-                        double radBeta = Math.asin(sinBeta);
-                        pointTransform.rotate(radBeta);
-                        final double smallerSize = Math.min(a, b);
-                        final double biggerSize = Math.max(a, b);
-                        final double missingDiagonale = c - smallerSize;
-                        final double scaleFactor = (biggerSize - smallerSize)
-                                / smallerSize; // missingDiagonale / smallerSize;
-
-                        pointTransform.scale(scaleFactor, scaleFactor);
-                        pointTransform.rotate(-radBeta);
-                    }
-
-                    state.tf.concatenate(pointTransform);
-                }
-            }
+//            state.contentStream.transform(Matrix.getTranslateInstance( (float) startPointCopy.getX(), (float) startPointCopy.getY()));
+//            state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedH, (float) calculatedW));
+            coords.add(new COSFloat((float) startPoint.getX()));
+            coords.add(new COSFloat((float) startPoint.getY()));
+            coords.add(new COSFloat((float) endPoint.getX()));
+            coords.add(new COSFloat((float) endPoint.getY()));
+            shading.setCoords(coords);
         }
+        else {
+            state.tf.transform(startPoint, startPoint);
+            state.tf.transform(endPoint, endPoint);
 
-        state.tf.transform(startPoint, startPoint);
-        state.tf.transform(endPoint, endPoint);
 
-        COSArray coords = new COSArray();
-        coords.add(new COSFloat((float) startPoint.getX()));
-        coords.add(new COSFloat((float) startPoint.getY()));
-        coords.add(new COSFloat((float) endPoint.getX()));
-        coords.add(new COSFloat((float) endPoint.getY()));
-        shading.setCoords(coords);
+            coords.add(new COSFloat((float) startPoint.getX()));
+            coords.add(new COSFloat((float) startPoint.getY()));
+            coords.add(new COSFloat((float) endPoint.getX()));
+            coords.add(new COSFloat((float) endPoint.getY()));
+            shading.setCoords(coords);
+        }
 
         PDFunctionType3 type3 = buildType3Function(colors, fractions, state);
 

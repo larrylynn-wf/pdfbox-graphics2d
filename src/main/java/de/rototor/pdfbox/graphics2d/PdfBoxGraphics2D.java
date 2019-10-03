@@ -703,6 +703,8 @@ public class PdfBoxGraphics2D extends Graphics2D {
 						fill(useEvenOdd);
 					} else {
 						clip(useEvenOdd);
+						contentStream.transform(Matrix.getTranslateInstance( 0.0f, 345.0f + 55.0f));
+            			contentStream.transform(Matrix.getScaleInstance( 385.0f, -55.0f));
 						contentStream.shadingFill(shading);
 					}
 				} else {
