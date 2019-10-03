@@ -702,6 +702,7 @@ public class PdfBoxGraphics2D extends Graphics2D {
 						applyShadingAsColor(shading);
 						fill(useEvenOdd);
 					} else {
+						// double clipping results in a corrupt PDF
 						// clip(useEvenOdd);
 						// The below is effective for long-gradient.svg but this is not the right scope for this
 						// kind of a change
