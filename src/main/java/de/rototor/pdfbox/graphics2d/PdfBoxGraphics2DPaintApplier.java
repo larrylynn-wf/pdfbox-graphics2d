@@ -373,6 +373,8 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         double calculatedPdfOriginX = startPointCopy.getX();
         // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
         double calculatedPdfOriginY = startPointCopy.getY() + calculatedH;
+        // again, // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
+        double calculatedPdfScaleY = -calculatedH;
         COSArray coords = new COSArray();
         if (isBatikGradient && shapeToDraw != null)
         {
@@ -410,10 +412,10 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
-        // the code below does not get the desired result
         state.contentStream.clip();
-        state.contentStream.transform(Matrix.getTranslateInstance( 0.0f, 345.0f + 55.0f));
-        state.contentStream.transform(Matrix.getScaleInstance( 385.0f, -55.0f));
+        // the code below does not get the desired result without clipping first
+        state.contentStream.transform(Matrix.getTranslateInstance( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY));
+        state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedW, (float) calculatedPdfScaleY));
         return shading;
     }
 
