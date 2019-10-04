@@ -322,11 +322,6 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         return new Point2D.Double(point2D.getX(), point2D.getY());
     }
 
-    /**
-     * Very small number, everything smaller than this is zero for us.
-     */
-    private static final double EPSILON = 0.00001;
-
     private PDShading buildLinearGradientShading(Paint paint, PaintApplierState state)
             throws IOException
     {
@@ -335,8 +330,6 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
          * AWT RadialGradientPaint. So we use Reflection to access the fields of both
          * these classes.
          */
-        boolean isBatikGradient = paint.getClass().getPackage().getName()
-                .equals("org.apache.batik.ext.awt");
 
         Color[] colors = getPropertyValue(paint, "getColors");
         Color firstColor = colors[0];
@@ -358,47 +351,26 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         //noinspection unused
         MultipleGradientPaint.ColorSpaceType colorSpaceType = getColorSpaceType(paint);
 
-        Shape shapeToDraw = state.env.getShapeToDraw();
-        Point2D startPointCopy = (Point2D) startPoint.clone();
-        Point2D endPointCopy = (Point2D) endPoint.clone();
-        state.tf.transform(startPointCopy, startPointCopy);
-        state.tf.transform(endPointCopy, endPointCopy);
-        double calculatedH = endPointCopy.getY() - startPointCopy.getY();
-        double calculatedW = endPointCopy.getX() - startPointCopy.getX();
-        double calculatedPdfOriginX = startPointCopy.getX();
-        // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
-        double calculatedPdfOriginY = startPointCopy.getY() + calculatedH;
-        // again, because SVGs frame of reference is top down & PDFs frame of reference is bottom up
-        double calculatedPdfScaleY = -calculatedH;
         COSArray coords = new COSArray();
-        if (isBatikGradient && shapeToDraw != null)
-        {
-            coords.add(new COSFloat((float) startPoint.getX()));
-            coords.add(new COSFloat((float) startPoint.getY()));
-            coords.add(new COSFloat((float) endPoint.getX()));
-            coords.add(new COSFloat((float) endPoint.getY()));
-            shading.setCoords(coords);
-        }
-        else {
-            state.tf.transform(startPoint, startPoint);
-            state.tf.transform(endPoint, endPoint);
-            coords.add(new COSFloat((float) startPoint.getX()));
-            coords.add(new COSFloat((float) startPoint.getY()));
-            coords.add(new COSFloat((float) endPoint.getX()));
-            coords.add(new COSFloat((float) endPoint.getY()));
-            shading.setCoords(coords);
-        }
+
+        // Paint the gradient on a 1x1 box
+        coords.add(new COSFloat((float) startPoint.getX()));
+        coords.add(new COSFloat((float) startPoint.getY()));
+        coords.add(new COSFloat((float) endPoint.getX()));
+        coords.add(new COSFloat((float) endPoint.getY()));
+        shading.setCoords(coords);
 
         PDFunctionType3 type3 = buildType3Function(colors, fractions, state);
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
+        // We need the rectangle here so that the call to clip(useEvenOdd)
+        // in PdfBoxGraphics2D.java clips to the right frame of reference
         state.contentStream.addRect(
                 (float) startPoint.getX(), (float) startPoint.getY(),
                 (float) endPoint.getX() - (float) startPoint.getX(), (float) endPoint.getY() - (float) startPoint.getY()
         );
-//        state.contentStream.transform(Matrix.getTranslateInstance( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY));
-//        state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedW, (float) calculatedPdfScaleY));
+        // Warp the 1x1 box containing the gradient to fill a larger rectangular space
         state.contentStream.transform(new Matrix(state.tf));
         return shading;
     }
