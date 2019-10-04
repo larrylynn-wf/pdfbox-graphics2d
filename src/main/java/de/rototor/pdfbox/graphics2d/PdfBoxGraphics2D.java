@@ -703,7 +703,7 @@ public class PdfBoxGraphics2D extends Graphics2D {
 						fill(useEvenOdd);
 					} else {
 						// double clipping results in a corrupt PDF
-						// clip(useEvenOdd);
+						clip(useEvenOdd);
 						// The below is effective for long-gradient.svg but this is not the right scope for this
 						// kind of a change
 //						contentStream.transform(Matrix.getTranslateInstance( 0.0f, 345.0f + 55.0f));

@@ -412,10 +412,12 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
-        state.contentStream.clip();
+        // state.contentStream.clip();
         // the code below does not get the desired result without clipping first
+        state.contentStream.addRect( (float) startPoint.getX(), (float) startPoint.getY(), (float) endPoint.getX() - (float) startPoint.getX(), (float) endPoint.getY() - (float) startPoint.getY() );
         state.contentStream.transform(Matrix.getTranslateInstance( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY));
         state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedW, (float) calculatedPdfScaleY));
+        // state.contentStream.addRect( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY, (float) calculatedW, (float) calculatedPdfScaleY);
         return shading;
     }
 
