@@ -322,6 +322,11 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         return new Point2D.Double(point2D.getX(), point2D.getY());
     }
 
+    /**
+     * Very small number, everything smaller than this is zero for us.
+     */
+    private static final double EPSILON = 0.00001;
+
     private PDShading buildLinearGradientShading(Paint paint, PaintApplierState state)
             throws IOException
     {
