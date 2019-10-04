@@ -359,11 +359,6 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         MultipleGradientPaint.ColorSpaceType colorSpaceType = getColorSpaceType(paint);
 
         Shape shapeToDraw = state.env.getShapeToDraw();
-        Rectangle2D originalBounds2D = shapeToDraw.getBounds2D();
-        float origX = (float) originalBounds2D.getX();
-        float origY = (float) originalBounds2D.getY();
-        float origH = (float) originalBounds2D.getHeight();
-        float origW = (float) originalBounds2D.getWidth();
         Point2D startPointCopy = (Point2D) startPoint.clone();
         Point2D endPointCopy = (Point2D) endPoint.clone();
         state.tf.transform(startPointCopy, startPointCopy);
@@ -373,23 +368,11 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         double calculatedPdfOriginX = startPointCopy.getX();
         // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
         double calculatedPdfOriginY = startPointCopy.getY() + calculatedH;
-        // again, // because SVGs frame of reference is top down & PDFs frame of reference is bottom up
+        // again, because SVGs frame of reference is top down & PDFs frame of reference is bottom up
         double calculatedPdfScaleY = -calculatedH;
         COSArray coords = new COSArray();
         if (isBatikGradient && shapeToDraw != null)
         {
-            // state.contentStream.transform(new Matrix(state.tf));
-//            contentStream.transform(Matrix.getTranslateInstance(x, y));
-//            contentStream.transform(Matrix.getScaleInstance(w, h));
-//            Point2D startPointCopy = (Point2D) startPoint.clone();
-//            Point2D endPointCopy = (Point2D) endPoint.clone();
-//            state.tf.transform(startPointCopy, startPointCopy);
-//            state.tf.transform(endPointCopy, endPointCopy);
-//            double calculatedH = endPointCopy.getY() - startPointCopy.getY();
-//            double calculatedW = endPointCopy.getX() - startPointCopy.getX();
-
-//            state.contentStream.transform(Matrix.getTranslateInstance( (float) startPointCopy.getX(), (float) startPointCopy.getY()));
-//            state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedH, (float) calculatedW));
             coords.add(new COSFloat((float) startPoint.getX()));
             coords.add(new COSFloat((float) startPoint.getY()));
             coords.add(new COSFloat((float) endPoint.getX()));
@@ -399,8 +382,6 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
         else {
             state.tf.transform(startPoint, startPoint);
             state.tf.transform(endPoint, endPoint);
-
-
             coords.add(new COSFloat((float) startPoint.getX()));
             coords.add(new COSFloat((float) startPoint.getY()));
             coords.add(new COSFloat((float) endPoint.getX()));
@@ -412,15 +393,13 @@ public class PdfBoxGraphics2DPaintApplier implements IPdfBoxGraphics2DPaintAppli
 
         shading.setFunction(type3);
         shading.setExtend(setupExtends());
-        // state.contentStream.clip();
-        // the code below does not get the desired result without clipping first
         state.contentStream.addRect(
                 (float) startPoint.getX(), (float) startPoint.getY(),
                 (float) endPoint.getX() - (float) startPoint.getX(), (float) endPoint.getY() - (float) startPoint.getY()
         );
-        state.contentStream.transform(Matrix.getTranslateInstance( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY));
-        state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedW, (float) calculatedPdfScaleY));
-        // state.contentStream.addRect( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY, (float) calculatedW, (float) calculatedPdfScaleY);
+//        state.contentStream.transform(Matrix.getTranslateInstance( (float) calculatedPdfOriginX, (float) calculatedPdfOriginY));
+//        state.contentStream.transform(Matrix.getScaleInstance( (float) calculatedW, (float) calculatedPdfScaleY));
+        state.contentStream.transform(new Matrix(state.tf));
         return shading;
     }
 
